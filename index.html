@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Henna von Jasmin</title>
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Fonts: elegant + oriental -->
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cinzel+Decorative:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- AUDIO -->
+  <audio id="bgMusic" loop>
+    <source src="assets/music/song.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- MUSIC BUTTON -->
+  <button class="music-btn" id="musicBtn" aria-label="Musik umschalten">🔇</button>
+
+  <!-- OPENING ENVELOPE -->
+  <div class="opening" id="opening">
+    <div class="stars"></div>
+
+    <div class="envelope">
+      <div class="envelope-top"></div>
+      <div class="envelope-body"></div>
+
+      <div class="letter">
+        <div class="seal">✦</div>
+        <h1>Henna von Jasmin</h1>
+        <p class="subtitle">1001 Nacht</p>
+
+        <p id="guestWelcome" class="guestWelcome">
+          Du bist herzlich eingeladen ✨
+        </p>
+
+        <button class="open-btn" id="openBtn">Einladung öffnen</button>
+
+        <p class="smallHint">Bitte tippen, um die Einladung zu öffnen</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main id="mainContent" class="hidden">
+
+    <header class="hero">
+      <div class="hero-inner">
+        <p class="tagline">✨ 1001 Nacht ✨</p>
+        <h2>Henna von</h2>
+        <h1>Jasmin</h1>
+
+        <div class="divider"></div>
+
+        <p class="datePlace">
+          <b>Donnerstag, 30.04.2026</b><br>
+          Beginn: <b>17:00 Uhr</b><br>
+          Arslan Halle, Schwieberdingen
+        </p>
+
+        <div class="countdown">
+          <div class="count-box"><span id="days">0</span><small>Tage</small></div>
+          <div class="count-box"><span id="hours">0</span><small>Std</small></div>
+          <div class="count-box"><span id="minutes">0</span><small>Min</small></div>
+          <div class="count-box"><span id="seconds">0</span><small>Sek</small></div>
+        </div>
+
+        <a class="btn" href="#details">Zur Einladung</a>
+      </div>
+    </header>
+
+    <section id="details" class="section">
+      <div class="card">
+        <h3>🌙 Einladung</h3>
+        <p>
+          Im Glanz von Kerzen, Gold und Magie laden wir dich ein,
+          einen unvergesslichen Abend voller Henna, Musik und Freude zu erleben.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>📍 Ort</h3>
+        <p>
+          <b>Arslan Halle</b><br>
+          Schwieberdingen
+        </p>
+        <a class="btn" target="_blank" href="https://maps.google.com/?q=Arslan+Halle+Schwieberdingen">Route öffnen</a>
+      </div>
+
+      <div class="card">
+        <h3>🕯️ Dresscode</h3>
+        <p>
+          Orientalisch elegant ✨<br>
+          Farben: <b>Weinrot, Gold, Creme</b>
+        </p>
+      </div>
+    </section>
+
+    <section id="agenda" class="section">
+      <div class="card">
+        <h3>🗓️ Ablauf (Agenda)</h3>
+
+        <div class="timeline">
+          <div class="event">
+            <div class="time">17:00</div>
+            <div class="desc">Empfang der Gäste & Begrüßung</div>
+          </div>
+          <div class="event">
+            <div class="time">18:00</div>
+            <div class="desc">Henna Zeremonie ✨</div>
+          </div>
+          <div class="event">
+            <div class="time">19:30</div>
+            <div class="desc">Essen & gemeinsame Feier</div>
+          </div>
+          <div class="event">
+            <div class="time">21:00</div>
+            <div class="desc">Musik, Tanz & Stimmung 💃</div>
+          </div>
+          <div class="event">
+            <div class="time">23:00</div>
+            <div class="desc">Dessert & Abschluss</div>
+          </div>
+        </div>
+
+        <p class="note">*(Die Uhrzeiten sind ungefähr und können leicht variieren.)*</p>
+      </div>
+    </section>
+
+    <section id="rsvp" class="section">
+      <div class="card">
+        <h3 id="rsvpHeadline">💌 RSVP</h3>
+        <p>Bitte gib uns kurz Bescheid, ob du dabei bist.</p>
+
+        <form id="rsvpForm">
+          <input type="text" id="name" placeholder="Dein Name" required>
+
+          <select id="kommt" required>
+            <option value="">Kommst du?</option>
+            <option value="Ja">Ja, ich komme</option>
+            <option value="Nein">Nein, leider nicht</option>
+          </select>
+
+          <input type="number" id="anzahl" placeholder="Anzahl Personen" min="1" value="1" required>
+
+          <textarea id="nachricht" placeholder="Nachricht an Jasmin (optional)" rows="4"></textarea>
+
+          <input type="text" id="song" placeholder="Musikvorschlag (optional)">
+
+          <button type="submit">Antwort senden</button>
+        </form>
+
+        <div class="success" id="successMessage">Danke! Deine Antwort wurde gespeichert ✨</div>
+      </div>
+    </section>
+
+    <section id="gifts" class="section">
+      <div class="card">
+        <h3>🎁 Geschenkeliste</h3>
+        <p>
+          Wenn du Jasmin eine Freude machen möchtest, kannst du hier ein Geschenk reservieren.
+          Sobald es ausgewählt wurde, wird es gespeichert.
+        </p>
+
+        <ul id="giftList" class="giftList">
+          <li data-gift="Parfüm Gutschein">
+            <span>Parfüm Gutschein</span>
+            <button onclick="reserveGift(this, 'Parfüm Gutschein')">Reservieren</button>
+          </li>
+          <li data-gift="Schmuck Geschenk">
+            <span>Schmuck Geschenk</span>
+            <button onclick="reserveGift(this, 'Schmuck Geschenk')">Reservieren</button>
+          </li>
+          <li data-gift="Deko für Zuhause">
+            <span>Deko für Zuhause</span>
+            <button onclick="reserveGift(this, 'Deko für Zuhause')">Reservieren</button>
+          </li>
+          <li data-gift="Geldgeschenk">
+            <span>Geldgeschenk</span>
+            <button onclick="reserveGift(this, 'Geldgeschenk')">Reservieren</button>
+          </li>
+        </ul>
+
+        <p class="note">
+          Tipp: Wenn du möchtest, kann ich dir auch eine Version machen, wo automatisch angezeigt wird,
+          was schon vergeben ist (live aus Google Sheets).
+        </p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      ✨ Henna von Jasmin • 30.04.2026 • 1001 Nacht ✨
+    </footer>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

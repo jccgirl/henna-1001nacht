@@ -1,0 +1,36 @@
+// GOOGLE APPS SCRIPT CODE
+// --------------------------------------
+// Sheets needed:
+// 1) RSVP  -> columns: Zeit | Name | Kommt | Anzahl | Nachricht | Song
+// 2) GIFTS -> columns: Zeit | Name | Geschenk
+// --------------------------------------
+
+function doPost(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var data = JSON.parse(e.postData.contents);
+
+  if (data.type === "rsvp") {
+    var sheet = ss.getSheetByName("RSVP");
+    sheet.appendRow([
+      new Date(),
+      data.name,
+      data.kommt,
+      data.anzahl,
+      data.nachricht,
+      data.song
+    ]);
+  }
+
+  if (data.type === "gift") {
+    var sheet2 = ss.getSheetByName("GIFTS");
+    sheet2.appendRow([
+      new Date(),
+      data.name,
+      data.gift
+    ]);
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: "success" }))
+    .setMimeType(ContentService.MimeType.JSON);
+}

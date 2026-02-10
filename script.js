@@ -3,7 +3,7 @@
 // ------------------------------
 
 // SETTINGS
-const scriptURL = "https://script.google.com/macros/s/AKfycbwT_paNLOYEzrqaj9EV_mijh0HdFPzOFsPX5juXiMrZrGE9NA3xemLlSjrT89LwSS_U/exec"; // <-- Web-App URL
+const scriptURL = "https://script.google.com/macros/s/AKfycbyiLDsIRoEkmzQn0VJAfzjP-mUZ-OysXTWIpbXamc8qya2t9tY84BGBZJWFAqtfkbh1/exec"; // <-- Web-App URL
 
 const eventDate = new Date(2026, 3, 30, 17, 0, 0).getTime(); // 30.04.2026 17:00
 

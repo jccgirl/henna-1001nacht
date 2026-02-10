@@ -1,8 +1,12 @@
+// ------------------------------
+// 1001 Nacht Henna Einladung JS
+// ------------------------------
 
 // ------------------------------------
 // SETTINGS
 // ------------------------------------
-const scriptURL = "https://script.google.com/macros/s/AKfycbwayfh4qjReq72sjps9Zki-SUuwLujV5gyF_1mNuwK-PqEmButrg0Ki6iA7pZPRjixS/exec";
+const scriptURL =
+  "https://script.google.com/macros/s/AKfycbwvp4LDIchAM4yTr-bnh8kjeUmwop9aEZnsL39XBu7i9LMwmxT41ghTlF_wIBW1mNmZ/exec"; // <-- HIER DEINE URL
 
 // Fixed Event Date: 30.04.2026, 17:00 Uhr
 const eventDate = new Date(2026, 3, 30, 17, 0, 0).getTime(); // Monate: Januar=0
@@ -18,7 +22,9 @@ const guestWelcomeEl = document.getElementById("guestWelcome");
 const rsvpHeadlineEl = document.getElementById("rsvpHeadline");
 
 if (guestName) {
-  if (guestWelcomeEl) guestWelcomeEl.innerText = "Hallo " + guestName + " ✨\nDu bist herzlich eingeladen!";
+  if (guestWelcomeEl)
+    guestWelcomeEl.innerText =
+      "Hallo " + guestName + " ✨\nDu bist herzlich eingeladen!";
   if (nameInputEl) nameInputEl.value = guestName;
   if (rsvpHeadlineEl) rsvpHeadlineEl.innerText = "💌 RSVP für " + guestName;
 }
@@ -35,15 +41,19 @@ const musicBtn = document.getElementById("musicBtn");
 
 let musicPlaying = false;
 
-function tryPlayMusic(){
-  if(!bgMusic) return;
-  bgMusic.play().then(() => {
-    musicPlaying = true;
-    if (musicBtn) musicBtn.innerText = "🔊";
-  }).catch(() => {
-    musicPlaying = false;
-    if (musicBtn) musicBtn.innerText = "🔇";
-  });
+function tryPlayMusic() {
+  if (!bgMusic) return;
+
+  bgMusic
+    .play()
+    .then(() => {
+      musicPlaying = true;
+      if (musicBtn) musicBtn.innerText = "🔊";
+    })
+    .catch(() => {
+      musicPlaying = false;
+      if (musicBtn) musicBtn.innerText = "🔇";
+    });
 }
 
 if (openBtn) {
@@ -75,38 +85,59 @@ function updateCountdown() {
   const distance = eventDate - now;
 
   if (distance <= 0) {
-    ["days","hours","minutes","seconds"].forEach(id => {
+    ["days", "hours", "minutes", "seconds"].forEach((id) => {
       const el = document.getElementById(id);
-      if(el) el.innerText = 0;
+      if (el) el.innerText = 0;
     });
     return;
   }
 
   const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const hours = Math.floor(
+    (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+  );
   const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
   const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-  if(document.getElementById("days")) document.getElementById("days").innerText = days;
-  if(document.getElementById("hours")) document.getElementById("hours").innerText = hours;
-  if(document.getElementById("minutes")) document.getElementById("minutes").innerText = minutes;
-  if(document.getElementById("seconds")) document.getElementById("seconds").innerText = seconds;
+  if (document.getElementById("days"))
+    document.getElementById("days").innerText = days;
+  if (document.getElementById("hours"))
+    document.getElementById("hours").innerText = hours;
+  if (document.getElementById("minutes"))
+    document.getElementById("minutes").innerText = minutes;
+  if (document.getElementById("seconds"))
+    document.getElementById("seconds").innerText = seconds;
 }
 
 setInterval(updateCountdown, 1000);
 updateCountdown();
 
 // ------------------------------------
-// RSVP FORM
+// HELPER: SEND TO GOOGLE SCRIPT (NO CORS ERROR)
+// ------------------------------------
+async function sendToSheet(payload) {
+  const formData = new FormData();
+  formData.append("data", JSON.stringify(payload));
+
+  const response = await fetch(scriptURL, {
+    method: "POST",
+    body: formData
+  });
+
+  return response.json();
+}
+
+// ------------------------------------
+// RSVP FORM SUBMIT
 // ------------------------------------
 const rsvpForm = document.getElementById("rsvpForm");
 const successMessage = document.getElementById("successMessage");
 
 if (rsvpForm) {
-  rsvpForm.addEventListener("submit", async function(e){
+  rsvpForm.addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    const data = {
+    const payload = {
       type: "rsvp",
       name: nameInputEl ? nameInputEl.value : "Unbekannt",
       kommt: document.getElementById("kommt")?.value || "",
@@ -116,28 +147,23 @@ if (rsvpForm) {
     };
 
     try {
-      const response = await fetch(scriptURL, {
-        method: "POST",
-        mode: "cors",           // wichtig für GitHub Pages
-        cache: "no-cache",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(data)
-      });
-
-      if(!response.ok) throw new Error("HTTP-Fehler: " + response.status);
-
-      const result = await response.json();
+      const result = await sendToSheet(payload);
       console.log("RSVP Antwort:", result);
 
-      if(result.status === "success" && successMessage){
-        successMessage.style.display = "block";
-        rsvpForm.reset();
-        if(guestName && nameInputEl) nameInputEl.value = guestName;
-      }
+      if (result.status === "success") {
+        if (successMessage) successMessage.style.display = "block";
 
-    } catch(err) {
-      console.error("RSVP fehlgeschlagen:", err);
+        rsvpForm.reset();
+
+        if (guestName && nameInputEl) {
+          nameInputEl.value = guestName;
+        }
+      } else {
+        alert("Fehler beim Speichern 😢");
+      }
+    } catch (error) {
       alert("Fehler beim Senden 😢 Bitte später nochmal versuchen.");
+      console.error("RSVP Fehler:", error);
     }
   });
 }
@@ -145,31 +171,29 @@ if (rsvpForm) {
 // ------------------------------------
 // GIFTS RESERVIEREN
 // ------------------------------------
-window.reserveGift = async function(btn, giftName){
+window.reserveGift = async function (btn, giftName) {
   const guest = guestName || (nameInputEl ? nameInputEl.value : "Unbekannt");
-  if(!btn) return;
+  if (!btn) return;
 
   btn.disabled = true;
   btn.innerText = "Reserviert ✔";
 
   const span = btn.parentElement.querySelector("span");
-  if(span) span.style.textDecoration = "line-through";
+  if (span) span.style.textDecoration = "line-through";
 
   try {
-    const response = await fetch(scriptURL, {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({type:"gift", name:guest, gift:giftName})
+    const result = await sendToSheet({
+      type: "gift",
+      name: guest,
+      gift: giftName
     });
 
-    if(!response.ok) throw new Error("HTTP-Fehler: "+response.status);
-
-    const result = await response.json();
     console.log("Gift Antwort:", result);
 
-  } catch(err){
-    console.error("Gift Reservierung fehlgeschlagen:", err);
+    if (result.status !== "success") {
+      alert("Geschenk konnte nicht gespeichert werden 😢");
+    }
+  } catch (error) {
+    console.error("Gift Fehler:", error);
   }
 };

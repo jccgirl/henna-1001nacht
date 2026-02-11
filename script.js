@@ -3,7 +3,7 @@
 // ------------------------------
 
 // SETTINGS
-const scriptURL = "https://script.google.com/macros/s/AKfycbyiLDsIRoEkmzQn0VJAfzjP-mUZ-OysXTWIpbXamc8qya2t9tY84BGBZJWFAqtfkbh1/exec"; // <-- Web-App URL
+const scriptURL = "https://script.google.com/macros/s/AKfycbyVVQ_ASYSscOlOrafOllu6C3nqNykNVnvkL2Qevpqr04PgvZh4vfme3VuJ1FoJzkBw/exec"; // <-- Web-App URL
 
 const eventDate = new Date(2026, 3, 30, 17, 0, 0).getTime(); // 30.04.2026 17:00
 
@@ -120,23 +120,89 @@ if (rsvpForm) {
 // ---------------------
 // Geschenke reservieren
 // ---------------------
-window.reserveGift = async function(btn, giftName) {
+window.reserveGift = async function (btn, giftName) {
   if (!btn) return;
+
   const guest = nameInputEl.value || "Unbekannt";
 
   btn.disabled = true;
   btn.innerText = "Reserviert ✔";
+
   const span = btn.parentElement.querySelector("span");
-  if(span) span.style.textDecoration = "line-through";
+  if (span) span.style.textDecoration = "line-through";
 
   const formData = new FormData();
-  formData.append("type","gift");
-  formData.append("name",guest);
-  formData.append("gift",giftName);
+  formData.append("type", "gift");
+  formData.append("name", guest);
+  formData.append("gift", giftName);
 
   try {
-    const response = await fetch(scriptURL,{method:"POST", body:formData});
+    const response = await fetch(scriptURL, {
+      method: "POST",
+      body: formData
+    });
+
     const result = await response.json();
-    console.log("Geschenk reserviert:", result);
-  } catch(err) { console.error(err); }
+
+    if (result.status !== "success") {
+      alert("Fehler beim Reservieren 😢");
+      btn.disabled = false;
+      btn.innerText = "Reservieren";
+      if (span) span.style.textDecoration = "none";
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Fehler beim Reservieren 😢");
+    btn.disabled = false;
+    btn.innerText = "Reservieren";
+    if (span) span.style.textDecoration = "none";
+  }
 };
+
+async function loadGifts() {
+  const giftListEl = document.getElementById("giftList");
+  if (!giftListEl) return;
+
+  try {
+    const response = await fetch(scriptURL + "?type=gifts");
+    const result = await response.json();
+
+    if (result.status !== "success") return;
+
+    giftListEl.innerHTML = "";
+
+    result.gifts.forEach((item) => {
+      const li = document.createElement("li");
+
+      const span = document.createElement("span");
+
+      if (item.link) {
+        span.innerHTML = `<a href="${item.link}" target="_blank">${item.gift}</a>`;
+      } else {
+        span.innerText = item.gift;
+      }
+
+      const btn = document.createElement("button");
+      btn.innerText = "Reservieren";
+
+      if (item.status === "reserviert") {
+        btn.disabled = true;
+        btn.innerText = "Reserviert ✔";
+        span.style.textDecoration = "line-through";
+      }
+
+      btn.addEventListener("click", () => reserveGift(btn, item.gift));
+
+      li.appendChild(span);
+      li.appendChild(btn);
+
+      giftListEl.appendChild(li);
+    });
+
+  } catch (err) {
+    console.error("Geschenke laden fehlgeschlagen:", err);
+  }
+}
+
+loadGifts();

@@ -441,3 +441,35 @@ form button:hover{
   .hero h1{font-size:52px}
   .envelope{height:540px}
 }
+
+
+button.confirming {
+  background-color: #d4a373;
+  color: white;
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+}
+
+button.reserved {
+  background-color: #8b5e3c;
+  color: white;
+  transform: scale(1.08);
+  transition: all 0.3s ease;
+}
+
+button.reserved::after {
+  content: " ✔";
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.gift-reserved {
+  opacity: 0.6;
+  text-decoration: line-through;
+  transition: all 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+

@@ -186,3 +186,87 @@ async function loadGifts() {
 
 // Lade Geschenke direkt beim Start
 loadGifts();
+
+let pendingReservation = null;
+
+window.reserveGift = async function(btn, giftName) {
+  if (!btn) return;
+
+  const guest = nameInputEl.value || "Unbekannt";
+
+  // -----------------------------
+  // 1️⃣ Erste Bestätigung
+  // -----------------------------
+  if (pendingReservation !== giftName) {
+
+    // Falls ein anderer Button aktiv war → neu rendern
+    if (pendingReservation) {
+      loadGifts();
+    }
+
+    pendingReservation = giftName;
+
+    btn.innerText = "Wirklich reservieren?";
+    btn.classList.add("confirming");
+
+    // Nach 5 Sekunden zurücksetzen
+    setTimeout(() => {
+      if (pendingReservation === giftName) {
+        pendingReservation = null;
+        loadGifts();
+      }
+    }, 5000);
+
+    return;
+  }
+
+  // -----------------------------
+  // 2️⃣ Zweiter Klick = Reservieren
+  // -----------------------------
+  pendingReservation = null;
+
+  btn.disabled = true;
+  btn.innerText = "Reserviert";
+  btn.classList.remove("confirming");
+
+  const formData = new FormData();
+  formData.append("type", "gift");
+  formData.append("name", guest);
+  formData.append("gift", giftName);
+
+  try {
+    const response = await fetch(scriptURL, {
+      method: "POST",
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (result.status !== "success") {
+      alert("Fehler beim Reservieren 😢");
+      loadGifts();
+      return;
+    }
+
+    // -----------------------------
+    // ✨ Animation starten
+    // -----------------------------
+    btn.classList.add("reserved");
+
+    const span = btn.parentElement.querySelector("span");
+    if (span) {
+      span.classList.add("gift-reserved");
+    }
+
+    // Kleine Verzögerung für Animation
+    setTimeout(() => {
+      loadGifts();
+    }, 600);
+
+  } catch (err) {
+    console.error(err);
+    alert("Fehler beim Reservieren 😢");
+    loadGifts();
+  }
+};
+

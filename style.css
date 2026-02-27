@@ -311,6 +311,13 @@ form input, form select, form textarea{
   outline:none;
 }
 
+/* Ensure the message textarea uses the same font and size as the number input */
+#anzahl, #nachricht {
+  font-family: Poppins, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
 form button{
   width:100%;
   margin-top:15px;

@@ -90,9 +90,21 @@ updateCountdown();
 const rsvpForm = document.getElementById("rsvpForm");
 const successMessage = document.getElementById("successMessage");
 
+// Prevent double-submits
+let rsvpSubmitting = false;
+
 if (rsvpForm) {
+  const submitBtn = rsvpForm.querySelector('button[type="submit"]');
+
   rsvpForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    if (rsvpSubmitting) return; // already sending
+    rsvpSubmitting = true;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Sende...";
+    }
 
     const formData = new FormData();
     formData.append("type", "rsvp");
@@ -103,16 +115,22 @@ if (rsvpForm) {
     formData.append("song", document.getElementById("song").value);
 
     try {
-      const response = await fetch(scriptURL, { method:"POST", body:formData });
+      const response = await fetch(scriptURL, { method: "POST", body: formData });
       const result = await response.json();
-      if(result.status === "success") {
+      if (result.status === "success") {
         successMessage.style.display = "block";
         rsvpForm.reset();
-        if(guestName) nameInputEl.value = guestName;
+        if (guestName) nameInputEl.value = guestName;
       }
-    } catch(err) {
+    } catch (err) {
       console.error("RSVP fehlgeschlagen:", err);
       alert("Fehler beim Senden 😢 Bitte später nochmal versuchen.");
+    } finally {
+      rsvpSubmitting = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Antwort senden";
+      }
     }
   });
 }

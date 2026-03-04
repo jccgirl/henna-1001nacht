@@ -311,13 +311,6 @@ form input, form select, form textarea{
   outline:none;
 }
 
-/* Ensure the message textarea uses the same font and size as the number input */
-#anzahl, #nachricht {
-  font-family: Poppins, sans-serif;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
 form button{
   width:100%;
   margin-top:15px;
@@ -473,6 +466,25 @@ button.reserved::after {
   opacity: 0.6;
   text-decoration: line-through;
   transition: all 0.4s ease;
+}
+
+.pagination {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.pagination button {
+  margin: 0 5px;
+  padding: 6px 12px;
+  border: none;
+  background: #eee;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.pagination button.active {
+  background: #8b5e3c;
+  color: white;
 }
 
 @keyframes fadeIn {

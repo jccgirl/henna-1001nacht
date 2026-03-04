@@ -6,6 +6,8 @@
 const scriptURL = "https://script.google.com/macros/s/AKfycbyVVQ_ASYSscOlOrafOllu6C3nqNykNVnvkL2Qevpqr04PgvZh4vfme3VuJ1FoJzkBw/exec"; // <-- Web-App URL
 
 const eventDate = new Date(2026, 3, 30, 17, 0, 0).getTime(); // 30.04.2026 17:00
+let currentPage = 1;
+const itemsPerPage = 6;
 
 // Guest Name
 const params = new URLSearchParams(window.location.search);
@@ -165,43 +167,56 @@ async function loadGifts() {
   try {
     const response = await fetch(`${scriptURL}?type=gifts`);
     const data = await response.json();
-
     if (data.status !== "success") return;
 
     const giftListEl = document.getElementById("giftList");
-    giftListEl.innerHTML = "";
+    const paginationEl = document.getElementById("pagination");
 
-    data.gifts.forEach(gift => {
+    giftListEl.innerHTML = "";
+    paginationEl.innerHTML = "";
+
+    const gifts = data.gifts;
+
+    const totalPages = Math.ceil(gifts.length / itemsPerPage);
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+
+    const paginatedGifts = gifts.slice(start, end);
+
+    paginatedGifts.forEach(gift => {
       const li = document.createElement("li");
 
-      // Name + Link
       const span = document.createElement("span");
-      if (gift.link) {
-        const a = document.createElement("a");
-        a.href = gift.link;
-        a.target = "_blank";
-        a.innerText = gift.gift;
-        span.appendChild(a);
-      } else {
-        span.innerText = gift.gift;
-      }
+      span.innerText = gift.gift;
       li.appendChild(span);
 
-      // Button
       const btn = document.createElement("button");
       btn.innerText = gift.status === "reserviert" ? "Reserviert ✔" : "Reservieren";
       btn.disabled = gift.status === "reserviert";
       btn.addEventListener("click", () => reserveGift(btn, gift.gift));
-      li.appendChild(btn);
 
+      li.appendChild(btn);
       giftListEl.appendChild(li);
     });
 
+    // Seitenzahlen generieren
+    for (let i = 1; i <= totalPages; i++) {
+      const pageBtn = document.createElement("button");
+      pageBtn.innerText = i;
+      if (i === currentPage) pageBtn.classList.add("active");
+
+      pageBtn.addEventListener("click", () => {
+        currentPage = i;
+        loadGifts();
+      });
+
+      paginationEl.appendChild(pageBtn);
+    }
+
   } catch (err) {
-    console.error("Fehler beim Laden der Geschenke:", err);
+    console.error("Fehler beim Laden:", err);
   }
 }
-
 // Lade Geschenke direkt beim Start
 loadGifts();
 

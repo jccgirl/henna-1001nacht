@@ -8,6 +8,8 @@ const scriptURL = "https://script.google.com/macros/s/AKfycbyVVQ_ASYSscOlOrafOll
 const eventDate = new Date(2026, 3, 30, 17, 0, 0).getTime(); // 30.04.2026 17:00
 let currentPage = 1;
 const itemsPerPage = 6;
+let giftsCache = null;
+let giftsLastFetch = 0;
 
 // Guest Name
 const params = new URLSearchParams(window.location.search);
@@ -138,81 +140,114 @@ if (rsvpForm) {
 }
 
 // ---------------------
-// Geschenke reservieren
+// Geschenke reservieren (confirmation flow implemented further below)
 // ---------------------
-window.reserveGift = async function(btn, giftName) {
-  if (!btn) return;
-  const guest = nameInputEl.value || "Unbekannt";
 
-  btn.disabled = true;
-  btn.innerText = "Reserviert ✔";
 
-  const formData = new FormData();
-  formData.append("type","gift");
-  formData.append("name",guest);
-  formData.append("gift",giftName);
+function makeClickableContent(text) {
+  // Convert URLs in text into anchor elements. Returns a DocumentFragment.
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const frag = document.createDocumentFragment();
 
+  let lastIndex = 0;
+  let match;
+  while ((match = urlRegex.exec(text)) !== null) {
+    const pre = text.substring(lastIndex, match.index);
+    if (pre) frag.appendChild(document.createTextNode(pre));
+
+    const a = document.createElement('a');
+    a.href = match[0];
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = match[0];
+    frag.appendChild(a);
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  const rest = text.substring(lastIndex);
+  if (rest) frag.appendChild(document.createTextNode(rest));
+
+  return frag;
+}
+
+function renderGifts(gifts) {
+  const giftListEl = document.getElementById("giftList");
+  const paginationEl = document.getElementById("pagination");
+
+  giftListEl.innerHTML = "";
+  paginationEl.innerHTML = "";
+
+  const totalPages = Math.max(1, Math.ceil(gifts.length / itemsPerPage));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+
+  const paginatedGifts = gifts.slice(start, end);
+
+  paginatedGifts.forEach(gift => {
+    const li = document.createElement("li");
+
+    const span = document.createElement("span");
+    // If a separate link column exists, wrap the gift name in an anchor
+    if (gift.link) {
+      const a = document.createElement('a');
+      a.href = gift.link;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.textContent = gift.gift || gift.link;
+      span.appendChild(a);
+    } else {
+      // Allow plain-text URLs inside the gift text
+      const content = makeClickableContent(gift.gift || "");
+      span.appendChild(content);
+    }
+    li.appendChild(span);
+
+    const btn = document.createElement("button");
+    btn.innerText = gift.status === "reserviert" ? "Reserviert ✔" : "Reservieren";
+    btn.disabled = gift.status === "reserviert";
+    btn.addEventListener("click", () => reserveGift(btn, gift.gift));
+
+    li.appendChild(btn);
+    giftListEl.appendChild(li);
+  });
+
+  // Seitenzahlen generieren
+  for (let i = 1; i <= totalPages; i++) {
+    const pageBtn = document.createElement("button");
+    pageBtn.innerText = i;
+    if (i === currentPage) pageBtn.classList.add("active");
+
+    pageBtn.addEventListener("click", () => {
+      currentPage = i;
+      // Render from cache immediately (no network)
+      if (giftsCache) renderGifts(giftsCache);
+      else loadGifts();
+    });
+
+    paginationEl.appendChild(pageBtn);
+  }
+}
+
+async function loadGifts(forceReload = false) {
   try {
-    const response = await fetch(scriptURL,{method:"POST", body:formData});
-    const result = await response.json();
-    console.log("Geschenk reserviert:", result);
+    // Use cached data when available to avoid refetching on every page click
+    const cacheTTL = 1000 * 60 * 5; // 5 minutes
+    const now = Date.now();
+    if (giftsCache && !forceReload && (now - giftsLastFetch) < cacheTTL) {
+      renderGifts(giftsCache);
+      return;
+    }
 
-    // Liste neu laden, damit Status aktualisiert wird
-    loadGifts();
-  } catch(err) { console.error(err); }
-};
-
-
-async function loadGifts() {
-  try {
     const response = await fetch(`${scriptURL}?type=gifts`);
     const data = await response.json();
     if (data.status !== "success") return;
 
-    const giftListEl = document.getElementById("giftList");
-    const paginationEl = document.getElementById("pagination");
+    giftsCache = data.gifts || [];
+    giftsLastFetch = Date.now();
 
-    giftListEl.innerHTML = "";
-    paginationEl.innerHTML = "";
-
-    const gifts = data.gifts;
-
-    const totalPages = Math.ceil(gifts.length / itemsPerPage);
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-
-    const paginatedGifts = gifts.slice(start, end);
-
-    paginatedGifts.forEach(gift => {
-      const li = document.createElement("li");
-
-      const span = document.createElement("span");
-      span.innerText = gift.gift;
-      li.appendChild(span);
-
-      const btn = document.createElement("button");
-      btn.innerText = gift.status === "reserviert" ? "Reserviert ✔" : "Reservieren";
-      btn.disabled = gift.status === "reserviert";
-      btn.addEventListener("click", () => reserveGift(btn, gift.gift));
-
-      li.appendChild(btn);
-      giftListEl.appendChild(li);
-    });
-
-    // Seitenzahlen generieren
-    for (let i = 1; i <= totalPages; i++) {
-      const pageBtn = document.createElement("button");
-      pageBtn.innerText = i;
-      if (i === currentPage) pageBtn.classList.add("active");
-
-      pageBtn.addEventListener("click", () => {
-        currentPage = i;
-        loadGifts();
-      });
-
-      paginationEl.appendChild(pageBtn);
-    }
-
+    renderGifts(giftsCache);
   } catch (err) {
     console.error("Fehler beim Laden:", err);
   }
@@ -234,7 +269,8 @@ window.reserveGift = async function(btn, giftName) {
 
     // Falls ein anderer Button aktiv war → neu rendern
     if (pendingReservation) {
-      loadGifts();
+      if (giftsCache) renderGifts(giftsCache);
+      else loadGifts();
     }
 
     pendingReservation = giftName;
@@ -246,7 +282,8 @@ window.reserveGift = async function(btn, giftName) {
     setTimeout(() => {
       if (pendingReservation === giftName) {
         pendingReservation = null;
-        loadGifts();
+        if (giftsCache) renderGifts(giftsCache);
+        else loadGifts();
       }
     }, 5000);
 
@@ -291,10 +328,14 @@ window.reserveGift = async function(btn, giftName) {
       span.classList.add("gift-reserved");
     }
 
-    // Kleine Verzögerung für Animation
-    setTimeout(() => {
-      loadGifts();
-    }, 600);
+    // Update cache and re-render (small delay for animation)
+    if (giftsCache) {
+      const item = giftsCache.find(g => g.gift === giftName);
+      if (item) item.status = 'reserviert';
+      setTimeout(() => renderGifts(giftsCache), 600);
+    } else {
+      setTimeout(() => loadGifts(), 600);
+    }
 
   } catch (err) {
     console.error(err);

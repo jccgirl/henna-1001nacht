@@ -35,6 +35,7 @@ const bgMusic = document.getElementById("bgMusic");
 const musicBtn = document.getElementById("musicBtn");
 
 let musicPlaying = false;
+let wasPlayingBeforeHidden = false;
 function tryPlayMusic() {
   if (!bgMusic) return;
   bgMusic.play().then(() => {
@@ -60,6 +61,33 @@ if (musicBtn) musicBtn.addEventListener("click", () => {
     musicPlaying = false;
     musicBtn.innerText = "🔇";
   }
+});
+
+// Pause music when the page becomes hidden or is unloaded.
+document.addEventListener('visibilitychange', () => {
+  if (!bgMusic) return;
+  if (document.hidden) {
+    wasPlayingBeforeHidden = !bgMusic.paused;
+    if (!bgMusic.paused) bgMusic.pause();
+    musicPlaying = false;
+    if (musicBtn) musicBtn.innerText = "🔇";
+  } else {
+    if (wasPlayingBeforeHidden) {
+      // Try to resume when user returns.
+      tryPlayMusic();
+      wasPlayingBeforeHidden = false;
+    }
+  }
+});
+
+window.addEventListener('pagehide', () => {
+  if (bgMusic && !bgMusic.paused) bgMusic.pause();
+  musicPlaying = false;
+  if (musicBtn) musicBtn.innerText = "🔇";
+});
+
+window.addEventListener('beforeunload', () => {
+  if (bgMusic && !bgMusic.paused) bgMusic.pause();
 });
 
 // COUNTDOWN

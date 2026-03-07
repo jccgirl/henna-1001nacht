@@ -492,3 +492,6 @@ button.reserved::after {
   to { opacity: 1; }
 }
 
+#song {
+  margin-bottom: 20px;
+}

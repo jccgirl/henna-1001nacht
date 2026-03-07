@@ -1,9 +1,14 @@
+document.addEventListener("DOMContentLoaded", initPage);
+
+function initPage() {
+
+
 // ------------------------------
 // 1001 Nacht Henna Einladung JS
 // ------------------------------
 
 // SETTINGS
-const scriptURL = "https://script.google.com/macros/s/AKfycbyVVQ_ASYSscOlOrafOllu6C3nqNykNVnvkL2Qevpqr04PgvZh4vfme3VuJ1FoJzkBw/exec"; // <-- Web-App URL
+const scriptURL = "https://script.google.com/macros/s/AKfycbxCEtCuqQr8zsmdXhnZdrXBzIMlPDoTQsoklP5vWfdxK74zFqE13FgFUwnp_2B-tWco/exec"; // <-- Web-App URL
 
 const eventDate = new Date(2026, 3, 30, 17, 0, 0).getTime(); // 30.04.2026 17:00
 let currentPage = 1;
@@ -145,7 +150,8 @@ if (rsvpForm) {
     formData.append("anzahl", document.getElementById("anzahl").value);
     formData.append("nachricht", document.getElementById("nachricht").value);
     formData.append("song", document.getElementById("song").value);
-    formData.append("kuchen", document.getElementById("kuchen").value);
+    const kuchenInput = document.getElementById("kuchen");
+    formData.append("kuchen", kuchenInput ? kuchenInput.value : "");
 
 
     try {
@@ -373,4 +379,5 @@ window.reserveGift = async function(btn, giftName) {
     loadGifts();
   }
 };
+}
 

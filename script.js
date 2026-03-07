@@ -145,6 +145,8 @@ if (rsvpForm) {
     formData.append("anzahl", document.getElementById("anzahl").value);
     formData.append("nachricht", document.getElementById("nachricht").value);
     formData.append("song", document.getElementById("song").value);
+    formData.append("kuchen", document.getElementById("kuchen").value);
+
 
     try {
       const response = await fetch(scriptURL, { method: "POST", body: formData });

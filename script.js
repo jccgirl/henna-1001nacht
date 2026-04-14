@@ -1,8 +1,3 @@
-document.addEventListener("DOMContentLoaded", initPage);
-
-function initPage() {
-
-
 // ------------------------------
 // 1001 Nacht Henna Einladung JS
 // ------------------------------
@@ -147,11 +142,10 @@ if (rsvpForm) {
     formData.append("type", "rsvp");
     formData.append("name", nameInputEl.value);
     formData.append("kommt", document.getElementById("kommt").value);
-    formData.append("anzahl", document.getElementById("anzahl").value);
+    //formData.append("anzahl", document.getElementById("anzahl").value);
     formData.append("nachricht", document.getElementById("nachricht").value);
     formData.append("song", document.getElementById("song").value);
-    const kuchenInput = document.getElementById("kuchen");
-    formData.append("kuchen", kuchenInput ? kuchenInput.value : "");
+    formData.append("kuchen", document.getElementById("kuchen")?.value || "");
 
 
     try {
@@ -379,5 +373,4 @@ window.reserveGift = async function(btn, giftName) {
     loadGifts();
   }
 };
-}
 

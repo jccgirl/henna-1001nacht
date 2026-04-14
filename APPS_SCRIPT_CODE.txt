@@ -1,137 +1,35 @@
-// Google Apps Script for RSVP + GIFTS
-// Sheets expected:
-// 1) RSVP  -> header row may include: Zeit | Name | Kommt | Anzahl | Nachricht | Song | Kuchen
-// 2) GIFTS -> header row should include column names like: Zeit | Geschenk | Link | Status | ...
+// Sheets needed:
+// 1) RSVP  -> columns: Zeit | Name | Kommt | Anzahl | Nachricht | Song
+// 2) GIFTS -> columns: Zeit | Name | Geschenk
+// --------------------------------------
 
-/**
- * Parse incoming request (supports application/json and form-encoded submissions).
- */
-function _parseRequest(e) {
-  var data = {};
-  try {
-    // Form-encoded (FormData / x-www-form-urlencoded)
-    if (e.parameter && Object.keys(e.parameter).length) {
-      for (var k in e.parameter) {
-        if (e.parameter.hasOwnProperty(k)) data[k] = e.parameter[k];
-      }
-      return data;
-    }
-
-    // JSON body
-    if (e.postData && e.postData.type && e.postData.type.indexOf('application/json') !== -1) {
-      data = JSON.parse(e.postData.contents || '{}');
-      return data;
-    }
-
-    // Fallback: try parsing raw contents as JSON
-    if (e.postData && e.postData.contents) {
-      try { data = JSON.parse(e.postData.contents); } catch (err) { /* ignore */ }
-    }
-  } catch (err) {
-    // ignore parse errors
-  }
-  return data;
-}
-
-/**
- * Handle POST requests from client.
- * - type=rsvp: append a row to RSVP sheet (includes optional `kuchen`)
- * - type=gift: append a row to GIFTS sheet (legacy behavior)
- */
 function doPost(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var data = _parseRequest(e);
+  var data = JSON.parse(e.postData.contents);
 
-  if (!data || !data.type) {
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'missing type' }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  if (data.type === 'rsvp') {
-    var sheet = ss.getSheetByName('RSVP');
-    if (!sheet) {
-      return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'RSVP sheet not found' }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-
+  if (data.type === "rsvp") {
+    var sheet = ss.getSheetByName("RSVP");
     sheet.appendRow([
       new Date(),
-      data.name || '',
-      data.kommt || '',
-      data.anzahl || '',
-      data.nachricht || '',
-      data.song || '',
-      data.kuchen || ''
+      data.name,
+      data.kommt,
+      data.anzahl,
+      data.nachricht,
+      data.song,
+      data.kuchen
     ]);
-
-    return ContentService.createTextOutput(JSON.stringify({ status: 'success' }))
-      .setMimeType(ContentService.MimeType.JSON);
   }
 
-  if (data.type === 'gift') {
-    var sheet2 = ss.getSheetByName('GIFTS');
-    if (!sheet2) {
-      return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'GIFTS sheet not found' }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-
+  if (data.type === "gift") {
+    var sheet2 = ss.getSheetByName("GIFTS");
     sheet2.appendRow([
       new Date(),
-      data.name || '',
-      data.gift || ''
+      data.name,
+      data.gift
     ]);
-
-    return ContentService.createTextOutput(JSON.stringify({ status: 'success' }))
-      .setMimeType(ContentService.MimeType.JSON);
   }
 
-  return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'unknown type' }))
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: "success" }))
     .setMimeType(ContentService.MimeType.JSON);
-}
-
-/**
- * Handle GET requests. When called with `?type=gifts` returns the GIFTS sheet as JSON.
- * The header row is used to map columns to keys (lowercased).
- */
-function doGet(e) {
-  try {
-    var params = e && e.parameter ? e.parameter : {};
-    if (params.type && params.type === 'gifts') {
-      var ss = SpreadsheetApp.getActiveSpreadsheet();
-      var sheet = ss.getSheetByName('GIFTS');
-      if (!sheet) {
-        return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'GIFTS sheet not found' }))
-          .setMimeType(ContentService.MimeType.JSON);
-      }
-
-      var values = sheet.getDataRange().getValues();
-      if (!values || values.length < 2) {
-        return ContentService.createTextOutput(JSON.stringify({ status: 'success', gifts: [] }))
-          .setMimeType(ContentService.MimeType.JSON);
-      }
-
-      var headers = values[0].map(function(h){ return String(h).toLowerCase().trim(); });
-      var gifts = [];
-
-      for (var r = 1; r < values.length; r++) {
-        var row = values[r];
-        var obj = {};
-        for (var c = 0; c < headers.length; c++) {
-          obj[headers[c] || ('col' + c)] = row[c];
-        }
-        // stable id for updates
-        obj._row = r + 1; // sheet row number (1-based)
-        gifts.push(obj);
-      }
-
-      return ContentService.createTextOutput(JSON.stringify({ status: 'success', gifts: gifts }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-
-    return ContentService.createTextOutput(JSON.stringify({ status: 'ok' }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: String(err) }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
 }
